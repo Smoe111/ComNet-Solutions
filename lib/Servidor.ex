@@ -45,5 +45,45 @@ defmodule Proyecto.Servidor do
       {:reply, :ok, %{state | salas: salas, usuarios: usuarios}}
     end
   end
+  #(Opcional)
+  def handle_call({:abandonar_sala, nombre}, _from, state) do
+    sala = state.usuarios[nombre][:sala]
+    salas = update_in(state.salas[sala], fn lista -> List.delete(List.wrap(lista), nombre) end)
+    usuarios = Map.update!(state.usuarios, nombre, &Map.put(&1, :sala, nil))
+    {:reply, :ok, %{state | salas: salas, usuarios: usuarios}}
+  end
 
+  def handle_call(:listar_usuarios, _from, state) do
+    {:reply, {:ok, Map.keys(state.usuarios)}, state}
+  end
+
+  def handle_call({:listar_historial, sala}, _from, state) do
+    {:reply, {:ok, Map.get(state.mensajes, sala, [])}, state}
+  end
+
+  def handle_call({:obtener_sala_actual, nombre}, _from, state) do
+    case Map.get(state.usuarios, nombre) do
+      nil -> {:reply, {:error, "Usuario no conectado"}, state}
+      usuario -> {:reply, {:ok, usuario[:sala]}, state}
+    end
+  end
+
+  def handle_cast({:enviar_mensaje, usuario, sala, mensaje}, state) do
+    {{año, mes, dia}, {hora, minutos, segundos}} = :calendar.local_time()
+    timestamp = :io_lib.format("~4..0B-~2..0B-~2..0B ~2..0B:~2..0B:~2..0B", [año, mes, dia, hora, minutos, segundos]) |> IO.iodata_to_binary()
+    mensaje_formateado = "[#{timestamp}] [#{sala}] #{usuario}: #{mensaje}"
+    mensajes = Map.update(state.mensajes, sala, [mensaje_formateado], fn mensaje -> [mensaje_formateado | mensaje] end)
+    usuarios_sala = Map.get(state.salas, sala, [])
+    Enum.each(usuarios_sala, fn nombre ->
+      if Map.has_key?(state.usuarios, nombre) do
+        send(state.usuarios[nombre].pid, {:mensaje, mensaje_formateado})
+      end
+    end)
+    guardar_mensajes(sala, mensaje_formateado)
+    {:noreply, %{state | mensajes: mensajes}}
+  end
+
+  defp guardar_mensajes(sala, mensaje) do
+    File.write("mensajes_#{sala}.csv", mensaje <> "\n", [:append])
+  end
 end
