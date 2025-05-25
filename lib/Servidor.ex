@@ -1,27 +1,26 @@
-defmodule ChatEmpresarial.Servidor do
+defmodule Proyecto.Servidor do
+  use GenServer
 
-  @moduledoc """
-  Este módulo se encarga de manejar la comunicación entre el servidor y los clientes.
-  """
-
-  def hello do
-    :world
+  def start_link(_args) do
+    GenServer.start_link(__MODULE__, %{
+      usuarios: %{}, # %{nombre => %{pid, sala}}
+      salas: %{"general" => []}, # %{sala => [usuarios]}
+      mensajes: %{"general" => []} # %{sala => [mensajes]}
+    }, name: {:global, __MODULE__})
   end
 
-  def start do
-    {:ok, _pid} = :gen_tcp.listen(4000, [:binary, active: false])
-    loop()
+  def init(state), do: {:ok,state}
+
+  #Conectar un usuario
+  def handle_call({:connect, nombre, pid}, _from, state) do
+    if Map.has_key?(state.usuarios, nombre) do
+      {:reply, {:error, "Usuario ya conectado"}, state}
+    else
+      usuarios = Map.put(state.usuarios, nombre, %{pid: pid, sala: "general"})
+      salas = Map.update!(state.salas, "general", fn usuarios -> [nombre | usuarios] end)
+      {:reply, :ok, %{state | usuarios: usuarios, salas: salas}}
+    end
   end
 
-  defp loop do
-    {:ok, socket} = :gen_tcp.accept(:gen_tcp.listen(4000, [:binary, active: false]))
-    spawn(fn -> handle_client(socket) end)
-    loop()
-  end
-
-  defp handle_client(socket) do
-    # Handle client communication here
-    :ok = :gen_tcp.close(socket)
-  end
 
 end
