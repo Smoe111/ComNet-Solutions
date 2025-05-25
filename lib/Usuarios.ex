@@ -105,7 +105,7 @@ defmodule ChatEmpresarial.Usuarios do
             IO.puts("Error al crear la sala: #{mensaje}")
         end
       String.starts_with?(comando, "/history") ->
-        [_, sala | _ ]= Strin.split(comando, " ", parts: 3)
+        [_, sala | _ ]= String.split(comando, " ", parts: 3)
         case GenServer.call({:global, ChatEmpresarial.Servidor}, {:listar_historial, sala}) do
           {:ok, historial} ->
             IO.puts("Historial de la sala #{sala}:")
