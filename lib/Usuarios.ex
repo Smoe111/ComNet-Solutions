@@ -8,16 +8,29 @@ defmodule ChatEmpresarial.Usuarios do
 
   def usuario(nombre) do
 
-    cliente= %ChatEmpresarial.Usuarios{nombre: nombre, pid: self()}
-
-    case GenServer.call(ChatEmpresarial.Servidor, {:connect, nombre, cliente.pid }) do #corregir que encuentre el servidor como sea
-       :ok ->
+    case GenServer.start_link(_MODULE_, nombre, name: String.to_atom(nombre)) do #corregir que encuentre el servidor como sea
+       {:ok, _pid}->
         IO.puts("Usuario #{nombre} conectado.")
-        comandos(cliente)
+        start(nombre)
 
         {:error, mensaje} ->
-          IO.puts("Error: #{mensaje}")
+          IO.puts("Error al crear el usuario: #{mensaje}")
     end
+  end
+
+  def start(nombre) do
+    case GenServer.call({:global, ChatEmpresarial.Servidor}, {:connect, nombre, self()}) do
+      :ok ->
+        IO.puts("Bienvenido al chat, #{nombre}!")
+        comandos(nombre)
+
+      {:error, mensaje} ->
+        IO.puts("Error al conectar el usuario: #{mensaje}")
+    end
+  end
+
+  def init (nombre) do
+    {:ok, %{nombre: nombre}}
   end
 
   def lista_usuarios() do
@@ -25,11 +38,11 @@ defmodule ChatEmpresarial.Usuarios do
     GenServer.call(ChatEmpresarial.Servidor, :lista_usuarios)
   end
 
-  defp comandos(%ChatEmpresarial.Usuarios{}= cliente) do
+  defp comandos(nombre) do
 
     IO.puts("""
 
-    Bienvenido al chat empresarial, #{cliente.nombre}!
+    Bienvenido al chat empresarial, #{nombre}!
 
     Comandos disponibles:
     - /list  = Ver usuarios conectados"
@@ -40,29 +53,29 @@ defmodule ChatEmpresarial.Usuarios do
     - /exit = Salir del chat"
 
     """)
-    spawn(fn-> loop(cliente)end)
-    listen(cliente)
+    spawn(fn-> loop(nombre)end)
+    listen(nombre)
 
   end
 
-  defp listen(%ChatEmpresarial.Usuarios{}= cliente) do
+  defp listen(nombre) do
 
     receive do
       {:mensaje, mensaje} -> IO.puts("Nuevo mensaje: #{mensaje}") #espera un mensaje del servidor
-      listen(cliente)
+      listen(nombre)
     end
   end
 
-  def loop(%ChatEmpresarial.Usuarios{}= cliente) do
+  def loop(nombre) do
 
     comando= IO.gets(">") |> String.trim()
-    case procesar_comando(cliente, comando) do
+    case procesar_comando(nombre, comando) do
       :exit -> :ok
-      _-> loop(cliente)
+      _-> loop(nombre)
     end
   end
 
-  defp procesar_comando("/list", %ChatEmpresarial.Usuarios{}= cliente) do
+  defp procesar_comando("/list", nombre) do
 
     usuarios= ChatEmpresarial.Usuarios.lista_usuarios()
     IO.puts("Usuarios conectados:")
