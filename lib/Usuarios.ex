@@ -8,7 +8,7 @@ defmodule ChatEmpresarial.Usuarios do
 
   def usuario(nombre) do
 
-    case GenServer.start_link(_MODULE_, nombre, name: String.to_atom(nombre)) do #corregir que encuentre el servidor como sea
+    case GenServer.start_link(__MODULE__, nombre, name: String.to_atom(nombre)) do #corregir que encuentre el servidor como sea
        {:ok, _pid}->
         IO.puts("Usuario #{nombre} conectado.")
         start(nombre)
