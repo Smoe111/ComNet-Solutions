@@ -5,7 +5,6 @@ defmodule ChatEmpresarial.Historial do
   conversaciones, la busqueda y recuperacion de estos.
   Esto permite la flexibilidad del codiggo
   """
-defmodule Chat.History do
 
   @path "historial/"  # Crea una carpeta donde se van a guardar los archivos de historial
 
@@ -35,4 +34,3 @@ defmodule Chat.History do
   end
 end
 
-end
