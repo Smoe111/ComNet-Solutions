@@ -1,7 +1,8 @@
 defmodule ChatEmpresarial.MixProject do
+
   use Mix.Project
 
-  def project do
+    def project do
     [
       app: :chat_empresarial,
       version: "0.1.0",
@@ -9,20 +10,19 @@ defmodule ChatEmpresarial.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
-  end
+    end
 
-  # Run "mix help compile.app" to learn about applications.
-  def application do
-    [
-      mod: {ChatEmpresarial, []},
-      extra_applications: [:logger]
-    ]
-  end
+    def application do
+      [
+        mod: {ChatEmpresarial, []},
+        extra_applications: [:logger]
+      ]
+    end
 
-  # Run "mix help deps" to learn about dependencies.
-  defp deps do
-    [
-     {:phoenix_pubsub, "~> 2.1"}
-    ]
-  end
+    defp deps do
+      [
+        {:phoenix_pubsub, "~> 2.1"}
+      ]
+    end
+
 end
