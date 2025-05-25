@@ -27,14 +27,20 @@ defmodule ChatEmpresarial.Usuarios do
 
   defp comandos(%ChatEmpresarial.Usuarios{}= cliente) do
 
-    IO.puts("Comandos disponibles:")
-    IO.puts(" /list  = Ver usuarios conectados")
-    IO.puts(" /join [sala]  = Unirse a una sala")
-    IO.puts(" /create [sala] = Crear una sala")
-    IO.puts(" /send [mensaje] [sala]= Enviar un mensaje a la sala")
-    IO.puts(" /historial [sala] = Ver el historial de la sala")
-    IO.puts(" /exit = Salir del chat")
+    IO.puts("""
 
+    Bienvenido al chat empresarial, #{cliente.nombre}!
+
+    Comandos disponibles:
+    - /list  = Ver usuarios conectados"
+    - /join [sala]  = Unirse a una sala"
+    - /create [sala] = Crear una sala"
+    - /send [mensaje] [sala]= Enviar un mensaje a la sala"
+    - /historial [sala] = Ver el historial de la sala"
+    - /exit = Salir del chat"
+
+    """)
+    spawn(fn-> loop(cliente)end)
     listen(cliente)
 
   end
@@ -44,12 +50,15 @@ defmodule ChatEmpresarial.Usuarios do
     receive do
       {:mensaje, mensaje} -> IO.puts("Nuevo mensaje: #{mensaje}") #espera un mensaje del servidor
       listen(cliente)
+    end
+  end
 
-    after
-      1000->
-        comando= IO.gets(">") |> String.trim()  #si no hay mensajes, espera un comando
-        procesar_comando(comando, cliente)
+  def loop(%ChatEmpresarial.Usuarios{}= cliente) do
 
+    comando= IO.gets(">") |> String.trim()
+    case procesar_comando(cliente, comando) do
+      :exit -> :ok
+      _-> loop(cliente)
     end
   end
 
