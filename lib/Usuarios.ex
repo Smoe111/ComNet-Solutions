@@ -78,7 +78,7 @@ defmodule ChatEmpresarial.Usuarios do
   defp procesar_comando(nombre, comando) do
 
     cond do
-      comando == " /list" ->
+      comando == "/list" ->
         case GenServer.call({:global, ChatEmpresarial.Servidor}, :listar_usuarios) do
           {:ok, usuarios}->
             IO.puts("Usuarios conectados:")
