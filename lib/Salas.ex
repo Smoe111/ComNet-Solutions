@@ -41,7 +41,9 @@ defmodule ChatEmpresarial.Salas do
 
   @impl true
   def handle_call({:agregar_usuario, usuario}, _from, state) do
+
     if usuario in state.usuarios do
+
     {:reply, {:error,"El usuario ya esta en la sala"}, state}
     else
       {:reply, :ok, %{state | usuarios: [usuario | state.usuarios]}}
