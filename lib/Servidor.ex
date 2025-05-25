@@ -22,5 +22,28 @@ defmodule Proyecto.Servidor do
     end
   end
 
+  def handle_call({:crear_sala, nombre_sala}, _from, state) do
+    if Map.has_key?(state.salas, nombre_sala) do
+      {:reply, {:error, "La sala ya existe"}, state}
+    else
+      salas = Map.put(state.salas, nombre_sala, [])
+      mensajes = Map.put(state.mensajes, nombre_sala, [])
+      {:reply, :ok, %{state | salas: salas, mensajes: mensajes}}
+    end
+  end
+
+  def handle_call({:unirse_sala, nombre,nombre_sala}, _from, state) do
+    if Map.has_key?(state.salas, nombre_sala) do
+      {:reply, {:error, "La sala no existe"}, state}
+    else
+      sala_anterior = state.usuarios[nombre][:sala]
+      salas =
+        state.salas
+        |> Map.update!(sala_anterior, fn lista -> List.delete(lista, nombre) end)
+        |> Map.update!(nombre_sala, fn lista -> [nombre | lista] end)
+      usuarios = Map.update!(state.usuarios, nombre, &Map.put(&1, :sala, nombre_sala))
+      {:reply, :ok, %{state | salas: salas, usuarios: usuarios}}
+    end
+  end
 
 end
