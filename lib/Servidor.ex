@@ -31,7 +31,7 @@ defmodule ChatEmpresarial.Servidor do
       {:reply, :ok, %{state | salas: salas, mensajes: mensajes}}
     end
   end
-  #Unirse a sala
+
   def handle_call({:unirse_sala, nombre,nombre_sala}, _from, state) do
     if Map.has_key?(state.salas, nombre_sala) do
       {:reply, {:error, "La sala no existe"}, state}

@@ -9,7 +9,7 @@ defmodule ChatEmpresarial do
   def start(_type, _args) do
     # Inicia el supervisor y los procesos necesarios para el chat empresarial
     children =
-      if Node.self() == :"servidor@localhost" do #busca el nodo servidor
+      if Node.self() == :"servidor@192.168.1.1" do #busca el nodo servidor
         # Si el nodo actual es el servidor, inicia el servidor
         [
           {Registry, keys: :unique, name: ChatEmpresarial.Registry},
