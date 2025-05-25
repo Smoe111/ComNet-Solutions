@@ -41,9 +41,6 @@ defmodule ChatEmpresarial.Usuarios do
   defp comandos(nombre) do
 
     IO.puts("""
-
-    Bienvenido al chat empresarial, #{nombre}!
-
     Comandos disponibles:
     - /list  = Ver usuarios conectados
     - /join [sala]  = Unirse a una sala
@@ -78,7 +75,7 @@ defmodule ChatEmpresarial.Usuarios do
   defp procesar_comando(nombre, comando) do
 
     cond do
-      comando == " /list" ->
+      String.starts_with?(comando, "/list") ->
         case GenServer.call({:global, ChatEmpresarial.Servidor}, :listar_usuarios) do
           {:ok, usuarios}->
             IO.puts("Usuarios conectados:")
@@ -89,7 +86,7 @@ defmodule ChatEmpresarial.Usuarios do
 
       String.starts_with?(comando, "/join") -> # verifica si el comando empieza con /join
         sala= String.replace_prefix(comando, "/join ", "")  # reemplaza un prefijo por un vacio para obtener el nombre de la sala
-        case GenServer.call({:global, ChatEmpresarial.Servidor}, {:entrar_sala, nombre, sala}) do
+        case GenServer.call({:global, ChatEmpresarial.Servidor}, {:unirse_sala, nombre, sala}) do
           :ok ->
             IO.puts("Te has unido a la sala #{sala}")
           {:error, mensaje} ->
