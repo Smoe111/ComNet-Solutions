@@ -21,7 +21,7 @@ defmodule ChatEmpresarial.Servidor do
       {:reply, :ok, %{state | usuarios: usuarios, salas: salas}}
     end
   end
-
+  #Crear sala
   def handle_call({:crear_sala, nombre_sala}, _from, state) do
     if Map.has_key?(state.salas, nombre_sala) do
       {:reply, {:error, "La sala ya existe"}, state}
@@ -31,7 +31,7 @@ defmodule ChatEmpresarial.Servidor do
       {:reply, :ok, %{state | salas: salas, mensajes: mensajes}}
     end
   end
-
+  #Unirse a sala
   def handle_call({:unirse_sala, nombre,nombre_sala}, _from, state) do
     if Map.has_key?(state.salas, nombre_sala) do
       {:reply, {:error, "La sala no existe"}, state}
@@ -45,29 +45,29 @@ defmodule ChatEmpresarial.Servidor do
       {:reply, :ok, %{state | salas: salas, usuarios: usuarios}}
     end
   end
-  #(Opcional)
+  #Abandonar sala (Opcional)
   def handle_call({:abandonar_sala, nombre}, _from, state) do
     sala = state.usuarios[nombre][:sala]
     salas = update_in(state.salas[sala], fn lista -> List.delete(List.wrap(lista), nombre) end)
     usuarios = Map.update!(state.usuarios, nombre, &Map.put(&1, :sala, nil))
     {:reply, :ok, %{state | salas: salas, usuarios: usuarios}}
   end
-
+  #Listar usuarios
   def handle_call(:listar_usuarios, _from, state) do
     {:reply, {:ok, Map.keys(state.usuarios)}, state}
   end
-
+  #Historial mensajes
   def handle_call({:listar_historial, sala}, _from, state) do
     {:reply, {:ok, Map.get(state.mensajes, sala, [])}, state}
   end
-
+  #Sala actual
   def handle_call({:obtener_sala_actual, nombre}, _from, state) do
     case Map.get(state.usuarios, nombre) do
       nil -> {:reply, {:error, "Usuario no conectado"}, state}
       usuario -> {:reply, {:ok, usuario[:sala]}, state}
     end
   end
-
+  #Enviar mensaje
   def handle_cast({:enviar_mensaje, usuario, sala, mensaje}, state) do
     {{año, mes, dia}, {hora, minutos, segundos}} = :calendar.local_time()
     timestamp = :io_lib.format("~4..0B-~2..0B-~2..0B ~2..0B:~2..0B:~2..0B", [año, mes, dia, hora, minutos, segundos]) |> IO.iodata_to_binary()
@@ -82,7 +82,7 @@ defmodule ChatEmpresarial.Servidor do
     guardar_mensajes(sala, mensaje_formateado)
     {:noreply, %{state | mensajes: mensajes}}
   end
-
+  #Guardar mensajes en un archivo CSV
   defp guardar_mensajes(sala, mensaje) do
     File.write("mensajes_#{sala}.csv", mensaje <> "\n", [:append])
   end
